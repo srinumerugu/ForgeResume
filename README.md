@@ -1,6 +1,6 @@
 # 🎯 ATS Resume Analyzer, Job Match Evaluator & AI Resume Generator
 
-> A free, full-stack AI-powered tool that analyzes your resume against any job description, scores your ATS compatibility, generates a brand-new tailored resume, and lets you build a complete resume from scratch — all in one place. No signup. No payment. Ever.
+> **ATS Resume Analyzer & AI Resume Builder** — A free AI-powered tool that analyzes your resume against any job description, scores ATS compatibility, generates tailored resumes in seconds, and lets you build a professional resume from scratch with smart templates. No signup. No payment. Ever.
 
 ---
 
@@ -104,11 +104,12 @@ Templates are available in both the AI Generator and the Start From Scratch buil
 ```
 ATS-Resume-checker/
 │
-├── main.py              # Entry point, server setup
-├── chat.py              # DeepSeek API integration & prompt engineering
+├── app.py               # Entry point, server setup & Gemini API integration
+│
+├── templates/
+│   └── index.html       # Main frontend UI
 │
 ├── static/
-│   ├── index.html       # Main frontend UI
 │   ├── style.css        # Styling & responsive layout
 │   └── script.js        # Frontend logic & API calls
 │
