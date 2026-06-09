@@ -19,6 +19,8 @@ window.onload = function() {
 // UPLOAD BOX
 // ================================
 const API_BASE = "https://forgeresume.onrender.com";
+// Wake up Render on page load
+fetch(`${API_BASE}/`).catch(() => {});
 const uploadBox = document.getElementById('uploadSection');
 const fileInput = document.createElement('input');
 fileInput.type = 'file';
@@ -92,7 +94,10 @@ document.getElementById('getStartedBtn').addEventListener('click', () => {
 // ANALYZE RESUME
 // ================================
 document.getElementById('analyzeResumeBtn').addEventListener('click', async () => {
-  const jobDescription = document.getElementById('jobDescription').value;
+  // Wake up backend first
+  try {
+    await fetch(`${API_BASE}/`);
+  } catch(e) {}
 
   if (!uploadedFile) {
     openPopup("Resume Missing 🤖", ["Please upload your resume file so I can start scanning."]);
