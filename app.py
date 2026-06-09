@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify, render_template, send_file
 from flask_cors import CORS
 from dotenv import load_dotenv
+from playwright.sync_api import sync_playwright
 
 import os
 import re
