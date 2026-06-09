@@ -94,10 +94,7 @@ document.getElementById('getStartedBtn').addEventListener('click', () => {
 // ANALYZE RESUME
 // ================================
 document.getElementById('analyzeResumeBtn').addEventListener('click', async () => {
-  // Wake up backend first
-  try {
-    await fetch(`${API_BASE}/`);
-  } catch(e) {}
+  const jobDescription = document.getElementById('jobDescription').value;
 
   if (!uploadedFile) {
     openPopup("Resume Missing 🤖", ["Please upload your resume file so I can start scanning."]);
