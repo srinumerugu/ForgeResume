@@ -7,3 +7,4 @@ python-multipart
 gunicorn
 pdfplumber
 python-docx
+weasyprint
