@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ResumeAI - ATS Resume Checker</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+
+<body class="gradient-bg text-slate-900 overflow-x-hidden">
+
+  <!-- NAV -->
+  <nav class="w-full px-8 lg:px-20 py-6 flex items-center justify-between bg-white/70 backdrop-blur-md sticky top-0 z-50 border-b border-slate-200">
+    <a href="{{ url_for('home') }}" class="flex items-center gap-3 cursor-pointer hover:opacity-80 transition">
+      <div class="w-10 h-10 rounded-2xl bg-gradient-to-r from-blue-600 to-violet-600"></div>
+      <h1 class="text-2xl font-extrabold">ResumeAI</h1>
+    </a>
+    <div class="hidden md:flex items-center gap-10 text-sm font-medium text-slate-600">
+      <a href="#features" class="nav-link hover:text-blue-600 transition">Features</a>
+      <div class="nav-tpl-wrap">
+        <a href="#templates" id="navTemplatesLink" class="nav-link hover:text-blue-600 transition flex items-center gap-1">
+          Templates <span id="navTplChevron" class="text-xs transition-transform">▾</span>
+        </a>
+        <div id="navTplDropdown" class="nav-tpl-dropdown hidden">
+          <div class="nav-tpl-head">
+            <span>Pick a template</span>
+            <span class="text-xs text-slate-400 font-normal">Click any preview to use it</span>
+          </div>
+          <div id="navTplGrid" class="nav-tpl-grid"></div>
+        </div>
+      </div>
+      <a href="#pricing" class="nav-link hover:text-blue-600 transition">Pricing</a>
+      <a href="#resources" class="nav-link hover:text-blue-600 transition flex items-center gap-1.5 relative group">
+        Resources
+        <span class="flex h-2 w-2 relative">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-violet-400 opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-2 w-2 bg-violet-600"></span>
+        </span>
+      </a>
+    </div>
+    <div class="flex items-center gap-3">
+      <button id="scratchBtn" class="px-4 py-3 rounded-2xl border border-slate-300 text-slate-800 text-sm font-semibold hover:border-slate-900 hover:bg-slate-50 transition whitespace-nowrap">+ Start from Scratch</button>
+      <button id="loginBtn" class="text-sm font-semibold text-slate-700 hover:text-blue-600 transition flex items-center gap-1">
+        Login <span class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-normal">Free</span>
+      </button>
+      <button id="getStartedBtn" class="px-5 py-3 rounded-2xl bg-slate-900 text-white text-sm font-semibold hover:scale-105 transition">
+        Get Started
+      </button>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero-grid relative min-h-screen px-8 lg:px-20 pt-8 lg:pt-10 pb-20 overflow-hidden">
+    <div class="max-w-7xl mx-auto grid lg:grid-cols-2 gap-20 items-start pt-10">
+      <div>
+        <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-100 text-blue-700 text-sm font-semibold mb-8">
+          ✨ AI Powered Resume Optimization
+        </div>
+        <h1 class="text-5xl lg:text-7xl font-extrabold leading-tight tracking-tight mb-8">
+          Get Your Resume
+          <span class="bg-gradient-to-r from-blue-600 to-violet-600 bg-clip-text text-transparent">ATS Ready</span>
+          in Seconds
+        </h1>
+        <p class="text-xl text-slate-600 leading-relaxed mb-10 max-w-xl">
+          Upload your resume and compare it against any job description.
+          Instantly discover missing skills, ATS issues, keyword gaps, and AI-powered improvements.
+        </p>
+      </div>
+
+      <div class="relative floating-card">
+        <div class="glass-card relative rounded-[32px] p-8 lg:p-10">
+          <div class="flex items-center justify-between mb-8">
+            <div>
+              <h2 class="text-3xl font-bold mb-2">Resume Checker</h2>
+              <p class="text-slate-500">Upload your resume to begin analysis</p>
+            </div>
+            <div class="w-14 h-14 rounded-2xl bg-gradient-to-r from-blue-600 to-violet-600 flex items-center justify-center text-white text-2xl shadow-lg" aria-hidden="true">✨</div>
+          </div>
+
+          <div id="uploadSection" class="upload-box transition duration-300 border-2 border-dashed border-slate-300 rounded-3xl bg-white p-10 text-center mb-6"></div>
+
+          <div class="mb-6">
+            <label for="jobDescription" class="block text-sm font-semibold mb-3 text-slate-700">Job Description</label>
+            <textarea id="jobDescription" rows="6" placeholder="Paste the job description here..." class="w-full rounded-3xl border border-slate-200 bg-white px-5 py-5 outline-none focus:ring-4 focus:ring-blue-100 resize-none text-slate-700"></textarea>
+          </div>
+
+          <button id="analyzeResumeBtn" class="w-full py-5 rounded-3xl bg-gradient-to-r from-blue-600 to-violet-600 text-white font-bold text-lg shadow-2xl shadow-blue-200 hover:scale-[1.02] transition duration-300">
+            Analyze Resume
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- POPUP MODAL -->
+  <div id="popupModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-md z-[999] flex items-center justify-center px-6">
+    <div class="bg-white rounded-[30px] max-w-lg w-full p-8 shadow-2xl relative">
+      <button id="closePopup" class="absolute top-4 right-4 text-slate-500 hover:text-black text-2xl" aria-label="Close modal">✕</button>
+      <h2 id="popupTitle" class="text-3xl font-bold mb-6"></h2>
+      <div id="popupContent" class="text-slate-600 space-y-3 text-lg"></div>
+    </div>
+  </div>
+
+  <!-- CRAFT WITH AI MODAL -->
+  <div id="craftModal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-[1000] overflow-y-auto">
+    <div class="min-h-screen px-4 py-10 flex items-start justify-center">
+      <div class="bg-white rounded-[36px] max-w-6xl w-full shadow-2xl overflow-hidden">
+
+        <div style="background: linear-gradient(135deg, #0f172a, #1e1b4b)" class="p-8 relative overflow-hidden">
+          <div class="absolute inset-0 opacity-20" style="background-image: radial-gradient(1.5px 1.5px at 15% 25%, white 0%, transparent 100%), radial-gradient(1.5px 1.5px at 75% 15%, white 0%, transparent 100%), radial-gradient(1px 1px at 45% 65%, white 0%, transparent 100%), radial-gradient(1px 1px at 90% 55%, white 0%, transparent 100%), radial-gradient(1px 1px at 5% 75%, white 0%, transparent 100%), radial-gradient(1.5px 1.5px at 60% 40%, white 0%, transparent 100%);"></div>
+          <div class="relative flex items-center justify-between">
+            <div>
+              <div class="flex items-center gap-3 mb-3">
+                <span class="ai-badge">AI Craft Studio</span>
+                <span id="craftStatusBadge" class="hidden text-xs text-emerald-400 font-semibold flex items-center gap-1.5">
+                  <span class="w-2 h-2 bg-emerald-400 rounded-full pulse-dot"></span> Generating
+                </span>
+              </div>
+              <h2 class="text-3xl font-extrabold text-white mb-1">Forge Your Perfect Resume</h2>
+              <p class="text-slate-400 text-sm">Two AI-crafted versions optimized for your target role</p>
+            </div>
+            <button id="closeCraftModal" class="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center text-lg transition" aria-label="Close">✕</button>
+          </div>
+        </div>
+
+        <!-- Loading State -->
+        <div id="craftLoading" class="p-10">
+          <div class="craft-loading-grid">
+
+            <!-- LEFT: status + 5 steps + progress -->
+            <div class="craft-loading-left">
+              <div class="text-center mb-8">
+                <div class="w-20 h-20 rounded-full mx-auto mb-5 flex items-center justify-center text-4xl" style="background: linear-gradient(135deg, #4f46e5, #7c3aed)">🤖</div>
+                <h3 id="craftLoadingTitle" class="text-2xl font-bold mb-2">Analyzing with recruiter lens...</h3>
+                <p id="craftLoadingSubtitle" class="text-slate-500">Running deep multi-perspective evaluation</p>
+              </div>
+              <div id="craftSteps" class="space-y-1 mb-8">
+                <div class="step-item" id="step1">
+                  <div class="step-dot active">1</div>
+                  <div><p class="font-semibold text-sm">First impression scan</p><p class="text-xs text-slate-500">10-second recruiter eye test</p></div>
+                </div>
+                <div class="step-item" id="step2">
+                  <div class="step-dot pending">2</div>
+                  <div><p class="font-semibold text-sm">Weakness deep-dive</p><p class="text-xs text-slate-500">Raw competitive assessment</p></div>
+                </div>
+                <div class="step-item" id="step3">
+                  <div class="step-dot pending">3</div>
+                  <div><p class="font-semibold text-sm">ATS keyword mapping</p><p class="text-xs text-slate-500">Job description alignment</p></div>
+                </div>
+                <div class="step-item" id="step4">
+                  <div class="step-dot pending">4</div>
+                  <div><p class="font-semibold text-sm">Achievement rewrite</p><p class="text-xs text-slate-500">Impact-driven bullet points</p></div>
+                </div>
+                <div class="step-item" id="step5">
+                  <div class="step-dot pending">5</div>
+                  <div><p class="font-semibold text-sm">Industry tone calibration</p><p class="text-xs text-slate-500">Crafting two resume versions</p></div>
+                </div>
+              </div>
+              <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                <div id="craftProgress" class="h-full rounded-full transition-all duration-500" style="width: 0%; background: linear-gradient(90deg, #4f46e5, #7c3aed)"></div>
+              </div>
+              <div class="flex items-center justify-between mt-2">
+                <p id="craftProgressLabel" class="text-xs text-slate-400">Warming up…</p>
+                <p id="craftProgressPct" class="text-xs font-bold text-slate-700">0%</p>
+              </div>
+            </div>
+
+            <!-- RIGHT: cute mascot animation -->
+            <div class="craft-loading-right">
+              <div class="cute-stage" aria-hidden="true">
+                <div class="cute-ring r1"></div>
+                <div class="cute-ring r2"></div>
+                <div class="cute-ring r3"></div>
+                <div class="cute-orbit">
+                  <span class="cute-spark s1">✨</span>
+                  <span class="cute-spark s2">📄</span>
+                  <span class="cute-spark s3">⚡</span>
+                  <span class="cute-spark s4">💼</span>
+                </div>
+                <div class="cute-center">🤖</div>
+              </div>
+              <p class="cute-caption">Crafting your perfect resume…</p>
+              <p class="cute-subcaption">Hang tight — Gemini is working its magic ✨</p>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Results State -->
+        <div id="craftResults" class="hidden p-8">
+          <div id="insightsBar" class="bg-slate-50 rounded-2xl p-5 mb-8 border border-slate-200">
+            <h3 class="font-bold text-slate-800 mb-4 text-sm uppercase tracking-wider">Recruiter Intelligence Report</h3>
+            <div id="insightsContent" class="grid md:grid-cols-2 gap-3 text-sm"></div>
+          </div>
+
+          <div class="flex items-center justify-between mb-6">
+            <div class="bg-slate-100 rounded-2xl p-1.5 flex gap-1">
+              <button class="tab-btn active" id="tabBothBtn" onclick="switchTab('both')">Side by Side</button>
+              <button class="tab-btn" id="tabV1Btn" onclick="switchTab('v1')">Version 1</button>
+              <button class="tab-btn" id="tabV2Btn" onclick="switchTab('v2')">Version 2</button>
+            </div>
+            <div class="text-xs text-slate-400 font-medium">2 resumes generated</div>
+          </div>
+
+          <div class="kw-legend">
+            <span><span class="dot" style="background:#bbf7d0"></span>Newly added keyword</span>
+            <span><span class="dot" style="background:#dbeafe"></span>Matched job keyword</span>
+          </div>
+
+          <div id="resumeGrid" class="grid lg:grid-cols-2 gap-6">
+            <div class="resume-card" id="card1">
+              <div class="resume-card-header">
+                <div class="flex items-center gap-3">
+                  <div class="score-ring" id="score1Ring" style="background: linear-gradient(135deg, #3b82f6, #6366f1)">
+                    <span id="score1Text">—</span>
+                  </div>
+                  <div>
+                    <div class="flex items-center gap-2 mb-1">
+                      <span class="font-bold text-slate-800">Precision Version</span>
+                      <span class="badge" style="background:#eff6ff; color:#1d4ed8;">ATS First</span>
+                    </div>
+                    <p class="text-xs text-slate-500">Optimized for automated screening systems</p>
+                  <p id="score1Delta" class="text-xs font-semibold mt-1"></p>
+                  </div>
+                </div>
+                <button class="copy-btn" onclick="downloadResume(1)">⬇ Download</button>
+              </div>
+              <div class="resume-content" id="resumeContent1">Generating...</div>
+            </div>
+
+            <div class="resume-card" id="card2">
+              <div class="resume-card-header">
+                <div class="flex items-center gap-3">
+                  <div class="score-ring" id="score2Ring" style="background: linear-gradient(135deg, #7c3aed, #a855f7)">
+                    <span id="score2Text">—</span>
+                  </div>
+                  <div>
+                    <div class="flex items-center gap-2 mb-1">
+                      <span class="font-bold text-slate-800">Impact Version</span>
+                      <span class="badge" style="background:#faf5ff; color:#7c3aed;">Human-First</span>
+                    </div>
+                    <p class="text-xs text-slate-500">Crafted to impress hiring managers</p>
+                  <p id="score2Delta" class="text-xs font-semibold mt-1"></p>
+                  </div>
+                </div>
+                <button class="copy-btn" onclick="downloadResume(2)">⬇ Download</button>
+              </div>
+              <div class="resume-content" id="resumeContent2">Generating...</div>
+            </div>
+          </div>
+
+          <div id="comparisonSummary" class="mt-8 bg-slate-50 rounded-2xl p-6 border border-slate-100">
+            <h3 class="font-bold mb-4">Which version should you use?</h3>
+            <div id="comparisonContent" class="text-sm text-slate-600"></div>
+          </div>
+
+          <div class="mt-6 p-4 rounded-2xl border border-dashed border-slate-300 text-center text-sm text-slate-500">
+            💡 Copy your preferred version into a Word doc or resume builder for final formatting
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SKILL CONFIRM MODAL -->
+  <div id="skillModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-md z-[1050] flex items-center justify-center px-6">
+    <div class="bg-white rounded-[30px] max-w-xl w-full p-8 shadow-2xl relative max-h-[88vh] flex flex-col">
+      <button id="closeSkillModalBtn" class="absolute top-4 right-4 text-slate-400 hover:text-black text-2xl" aria-label="Close">✕</button>
+      <h2 class="text-2xl font-extrabold mb-1">Quick honesty check</h2>
+      <p class="text-slate-500 text-sm mb-5">Tick only what's genuinely true — we add just those, and never invent anything for you.</p>
+      <div id="honestyBody" class="overflow-y-auto mb-5 pr-1 space-y-5"></div>
+      <div class="flex gap-3">
+        <button id="skipSkillsBtn" class="flex-1 py-3 rounded-2xl bg-slate-100 text-slate-700 font-semibold hover:bg-slate-200 transition">Skip — none of these</button>
+        <button id="confirmSkillsBtn" class="flex-1 py-3 rounded-2xl bg-gradient-to-r from-blue-600 to-violet-600 text-white font-bold hover:scale-[1.02] transition">Add &amp; Continue</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TEMPLATE PICKER MODAL -->
+  <div id="templateModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-md z-[1100] flex items-center justify-center px-6">
+    <div class="bg-white rounded-[32px] max-w-4xl w-full shadow-2xl relative max-h-[90vh] flex flex-col">
+      <button id="closeTemplateModalBtn" class="absolute top-5 right-5 text-slate-400 hover:text-black text-2xl z-10" aria-label="Close">✕</button>
+      <div class="text-center px-10 pt-10 pb-5">
+        <h2 class="text-4xl font-extrabold mb-3">Select Template</h2>
+        <p class="text-slate-500">Click a template and your resume downloads as a PDF in that design</p>
+      </div>
+      <div id="templateGrid" class="grid sm:grid-cols-2 md:grid-cols-3 gap-6 px-10 pb-10 overflow-y-auto"></div>
+    </div>
+  </div>
+
+  <div id="features"></div>
+  <div id="templates"></div>
+  <div id="pricing"></div>
+  <div id="resources"></div>
+
+  <!-- START FROM SCRATCH MODAL -->
+  <div id="scratchModal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-[1080] overflow-y-auto">
+    <div class="min-h-full flex items-start justify-center px-4 py-10">
+      <div class="sf-card-root bg-white rounded-[32px] max-w-3xl w-full shadow-2xl relative">
+        <button id="closeScratchBtn" class="absolute top-5 right-5 text-slate-400 hover:text-black text-2xl z-10" aria-label="Close">✕</button>
+        <div class="px-8 sm:px-10 pt-9 pb-4 border-b border-slate-100">
+          <h2 class="text-3xl font-extrabold">Build your resume from scratch</h2>
+          <p class="text-slate-500 mt-1 text-sm">Fill in your details and we'll format an ATS-friendly resume you can download. <span class="text-rose-500 font-semibold">*</span> = required.</p>
+        </div>
+
+        <div class="px-8 sm:px-10 py-6 space-y-8">
+
+          <!-- Optional autofill: upload an existing resume to pre-fill the form -->
+          <section>
+            <div class="sf-upload-card">
+              <div class="flex items-start gap-4">
+                <div class="sf-upload-icon">📄</div>
+                <div class="flex-1 min-w-0">
+                  <p class="font-bold text-slate-800">Have an old resume?</p>
+                  <p class="text-xs text-slate-500 mb-3">Upload it and we'll pre-fill every field below. You'll see exactly what's missing afterward.</p>
+                  <div id="sfUploadIdle" class="flex flex-wrap items-center gap-3">
+                    <button type="button" id="sfPickFileBtn" class="sf-add">⬆ Upload PDF / DOCX</button>
+                    <span class="text-xs text-slate-400">or drop a file anywhere on this card</span>
+                  </div>
+                  <div id="sfUploadBusy" class="hidden flex items-center gap-3">
+                    <div class="sf-spinner"></div>
+                    <p class="text-sm text-slate-600">Reading your resume with AI…</p>
+                  </div>
+                  <div id="sfUploadDone" class="hidden text-sm text-emerald-700 font-semibold flex items-center gap-2">
+                    ✓ Pre-filled from <span id="sfUploadFileName" class="font-normal text-slate-500"></span>
+                    <button type="button" id="sfClearUploadBtn" class="text-xs text-slate-400 hover:text-rose-500 underline ml-2">clear &amp; start blank</button>
+                  </div>
+                  <p id="sfUploadError" class="hidden text-sm text-rose-500 mt-2"></p>
+                </div>
+              </div>
+            </div>
+            <div id="sfMissingBanner" class="hidden mt-3 sf-missing-banner">
+              <p class="text-sm font-semibold text-amber-800">Heads up — please review these:</p>
+              <p id="sfMissingList" class="text-xs text-amber-700 mt-1"></p>
+            </div>
+          </section>
+
+          <section>
+            <h3 class="sf-h">Basic details</h3>
+            <div class="grid sm:grid-cols-2 gap-3">
+              <input id="sfName" class="sf-in" placeholder="Full name *">
+              <input id="sfRole" class="sf-in" placeholder="Target role / title (e.g. Data Analyst)">
+              <input id="sfMobile" class="sf-in" placeholder="Mobile number">
+              <input id="sfEmail" class="sf-in" placeholder="Email">
+              <input id="sfLinkedin" class="sf-in" placeholder="LinkedIn URL">
+              <input id="sfGithub" class="sf-in" placeholder="GitHub URL">
+            </div>
+          </section>
+
+          <section>
+            <h3 class="sf-h">Summary</h3>
+            <textarea id="sfSummary" rows="3" class="sf-in" placeholder="2–3 lines about who you are and what you're good at"></textarea>
+          </section>
+
+          <section>
+            <h3 class="sf-h">Education</h3>
+            <div class="space-y-4">
+              <div class="sf-card">
+                <p class="sf-sub">Postgraduate (PG)</p>
+                <div class="grid sm:grid-cols-2 gap-3">
+                  <input id="sfPgCourse" class="sf-in" placeholder="Degree / Program">
+                  <input id="sfPgInst" class="sf-in" placeholder="Institution">
+                  <input id="sfPgYear" class="sf-in" placeholder="Year (e.g. 2023–2025)">
+                  <input id="sfPgScore" class="sf-in" placeholder="CGPA / %">
+                </div>
+              </div>
+              <div class="sf-card" style="border-color:#bfdbfe">
+                <p class="sf-sub">Undergraduate (UG) <span class="text-rose-500">*</span></p>
+                <div class="grid sm:grid-cols-2 gap-3">
+                  <input id="sfUgCourse" class="sf-in" placeholder="Degree / Program *">
+                  <input id="sfUgInst" class="sf-in" placeholder="Institution *">
+                  <input id="sfUgYear" class="sf-in" placeholder="Year (e.g. 2019–2023)">
+                  <input id="sfUgScore" class="sf-in" placeholder="CGPA / %">
+                </div>
+              </div>
+              <div class="sf-card">
+                <p class="sf-sub">Diploma / Intermediate / SSC</p>
+                <div class="grid sm:grid-cols-2 gap-3">
+                  <input id="sfSchCourse" class="sf-in" placeholder="Diploma / Intermediate / SSC">
+                  <input id="sfSchInst" class="sf-in" placeholder="School / Board">
+                  <input id="sfSchYear" class="sf-in" placeholder="Year">
+                  <input id="sfSchScore" class="sf-in" placeholder="CGPA / %">
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section>
+            <div class="flex items-center justify-between">
+              <h3 class="sf-h" style="margin-bottom:0">Skill set</h3>
+              <button type="button" id="sfAddSkill" class="sf-add">+ Add skill</button>
+            </div>
+            <div id="sfSkills" class="grid sm:grid-cols-2 gap-3 mt-3"></div>
+          </section>
+
+          <section>
+            <div class="flex items-center justify-between">
+              <h3 class="sf-h" style="margin-bottom:0">Internships</h3>
+              <button type="button" id="sfAddIntern" class="sf-add">+ Add internship</button>
+            </div>
+            <div id="sfInterns" class="space-y-4 mt-3"></div>
+          </section>
+
+          <section>
+            <div class="flex items-center justify-between">
+              <h3 class="sf-h" style="margin-bottom:0">Coursework &amp; academic projects</h3>
+              <button type="button" id="sfAddProject" class="sf-add">+ Add project</button>
+            </div>
+            <div id="sfProjects" class="space-y-4 mt-3"></div>
+          </section>
+
+          <section>
+            <div class="flex items-center justify-between">
+              <h3 class="sf-h" style="margin-bottom:0">Certifications</h3>
+              <button type="button" id="sfAddCert" class="sf-add">+ Add certification</button>
+            </div>
+            <div id="sfCerts" class="space-y-3 mt-3"></div>
+          </section>
+
+          <section>
+            <h3 class="sf-h">Hobbies</h3>
+            <input id="sfHobbies" class="sf-in" placeholder="e.g. Chess, Photography, Trekking">
+          </section>
+
+        </div>
+
+        <div class="px-8 sm:px-10 py-5 border-t border-slate-100 flex flex-col sm:flex-row items-center gap-3 sticky bottom-0 bg-white rounded-b-[32px]">
+          <p id="sfError" class="text-rose-500 text-sm font-medium flex-1 hidden"></p>
+          <button id="sfBuildBtn" class="w-full sm:w-auto sm:ml-auto px-6 py-3 rounded-2xl bg-gradient-to-r from-blue-600 to-violet-600 text-white font-bold hover:scale-[1.02] transition">Build my resume →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BUILD CHOICE MODAL -->
+  <div id="buildChoiceModal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-[1095] flex items-center justify-center px-5">
+    <div class="bg-white rounded-[30px] max-w-lg w-full p-8 shadow-2xl relative">
+      <button id="closeBuildChoiceBtn" class="absolute top-4 right-4 text-slate-400 hover:text-black text-2xl" aria-label="Close">✕</button>
+      <h2 class="text-2xl font-extrabold mb-1">How should we build it?</h2>
+      <p class="text-slate-500 text-sm mb-6">Choose how to finish your resume.</p>
+
+      <div id="buildChoiceButtons" class="grid sm:grid-cols-2 gap-4">
+        <button id="buildNormalBtn" class="text-left p-5 rounded-2xl border border-slate-200 hover:border-blue-400 hover:bg-blue-50/40 transition">
+          <div class="text-lg font-bold mb-1">📄 Build normally</div>
+          <div class="text-sm text-slate-500">Format your details into a clean basic template, ready to download.</div>
+        </button>
+        <button id="buildJDBtn" class="text-left p-5 rounded-2xl border border-slate-200 hover:border-violet-400 hover:bg-violet-50/40 transition">
+          <div class="text-lg font-bold mb-1">🎯 Build with job description</div>
+          <div class="text-sm text-slate-500">Analyze against a job, then Forge two tailored, ATS-optimized versions.</div>
+        </button>
+      </div>
+
+      <div id="buildJDPanel" class="hidden mt-6">
+        <p class="sf-sub">Paste the job description</p>
+        <textarea id="scratchJD" rows="6" class="sf-in" placeholder="Paste the full job description here..."></textarea>
+        <p id="scratchJDErr" class="text-rose-500 text-sm mt-2 hidden"></p>
+        <div class="flex gap-3 mt-4">
+          <button id="backChoiceBtn" class="flex-1 py-3 rounded-2xl bg-slate-100 text-slate-700 font-semibold hover:bg-slate-200 transition">← Back</button>
+          <button id="runJDBtn" class="flex-1 py-3 rounded-2xl bg-gradient-to-r from-blue-600 to-violet-600 text-white font-bold hover:scale-[1.02] transition">Analyze &amp; Forge →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BASIC RESUME PREVIEW MODAL (normal build) -->
+  <div id="basicModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-md z-[1100] flex items-center justify-center px-6">
+    <div class="bg-white rounded-[32px] max-w-2xl w-full shadow-2xl relative max-h-[92vh] flex flex-col">
+      <button id="closeBasicBtn" class="absolute top-5 right-5 text-slate-400 hover:text-black text-2xl z-10" aria-label="Close">✕</button>
+      <div class="text-center px-10 pt-9 pb-4">
+        <h2 id="basicTitle" class="text-3xl font-extrabold mb-1">Your resume</h2>
+        <p id="basicSubtitle" class="text-slate-500 text-sm">Preview below, then download as PDF.</p>
+      </div>
+      <div class="px-8 pb-4 overflow-y-auto">
+        <div class="basic-preview"><iframe id="basicFrame" loading="lazy"></iframe></div>
+      </div>
+      <div class="px-8 py-5 border-t border-slate-100">
+        <button id="basicDownloadBtn" class="w-full py-3 rounded-2xl bg-gradient-to-r from-blue-600 to-violet-600 text-white font-bold hover:scale-[1.02] transition"><span class="b-lbl">⬇ Download PDF</span></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- toast used by the template picker -->
+  <div id="templateToast" class="template-toast"></div>
+
+  <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
