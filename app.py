@@ -654,7 +654,7 @@ def assess_requirements(job_desc, resume_text):
 
 @app.route("/")
 def home():
-    return render_template("index.html")
+    return jsonify({"status": "ForgeResume API is running"})
 
 
 # =========================
