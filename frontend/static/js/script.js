@@ -1939,7 +1939,7 @@ async function downloadBasic() {
   try {
     const html = buildResumeDoc(parsedResume, currentPreviewTemplate);
     const fileName = `Resume_${pendingLabel}_${currentPreviewTemplate}`;
-    const res = await fetch('${API_BASE}/render-pdf', {
+    const res = await fetch(`${API_BASE}/render-pdf', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ html, filename: fileName })
@@ -2003,7 +2003,7 @@ async function runScratchJD() {
   craftModal.classList.remove('hidden');
 
   try {
-    const res = await fetch('${API_BASE}/analyze', {
+    const res = await fetch(`${API_BASE}/analyze', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ resume_text: scratchText, job_description: jd })
