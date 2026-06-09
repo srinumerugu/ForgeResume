@@ -1937,10 +1937,10 @@ async function downloadBasic() {
   if (btn.disabled) return;
   btn.disabled = true;
   const old = lbl.textContent;
-  lbl.textContent = 'Generating…';
+  lbl.textContent = 'Generating\u2026';
   try {
     const html = buildResumeDoc(parsedResume, currentPreviewTemplate);
-    const fileName = `Resume_${pendingLabel}_${currentPreviewTemplate}`;
+    const fileName = 'Resume_' + pendingLabel + '_' + currentPreviewTemplate;
     const res = await fetch(`${API_BASE}/render-pdf`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -1954,14 +1954,14 @@ async function downloadBasic() {
     const blob = await res.blob();
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url; a.download = `${fileName}.pdf`;
+    a.href = url; a.download = fileName + '.pdf';
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
     showTemplateToast('Resume downloaded');
-    scratchGenerated = true;   // next open of Start-from-Scratch will start blank
+    scratchGenerated = true;
   } catch (err) {
     console.error(err);
-    openPopup("Download Error ❌", [
+    openPopup("Download Error \u274C", [
       "Could not generate the PDF.",
       "Make sure the Flask backend is running on port 5000.",
       err.message || ""
