@@ -18,7 +18,7 @@ window.onload = function() {
 // ================================
 // UPLOAD BOX
 // ================================
-const API_BASE = "https://forgeresume.onrender.com/";
+const API_BASE = "https://forgeresume.onrender.com";
 const uploadBox = document.getElementById('uploadSection');
 const fileInput = document.createElement('input');
 fileInput.type = 'file';
