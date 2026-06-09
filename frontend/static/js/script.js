@@ -15,6 +15,16 @@ let confirmedSkills = [];
 let confirmedRequirements = [];
 let versionTexts = { 1: '', 2: '' };
 
+// Global UI and state management variables
+let galleryMode = 'finalize';      
+let userPickedTemplate = false;    
+let chosenTemplate = 'modern';
+let currentPreviewTemplate = 'modern';
+let previewMode = 'finalize';                  
+let scratchText = '';
+let scratchGenerated = false;   
+const BASIC_TEMPLATE = 'modern';   
+
 window.onload = function() {
   window.scrollTo(0, 0);
   uploadedFile = null;
@@ -228,7 +238,7 @@ document.getElementById('analyzeResumeBtn').addEventListener('click', async () =
   } catch (error) {
     loading.remove();
     console.error(error);
-    openPopup("Server Error", ['Could not connect to backend API. Make sure Flask server is running on port 5000.']);
+    openPopup("Server Error", ['Could not connect to backend API. Make sure backend service is active.']);
   }
 });
 
@@ -287,7 +297,6 @@ async function openCraftModal() {
     } catch (err) {
       openPopup("Server Error ❌", [
         "Could not extract resume text.",
-        "Make sure the Flask backend is running on port 5000.",
         err.message
       ]);
       return;
@@ -422,7 +431,6 @@ async function runCraftAI() {
     setCraftProgress(55, 'Talking to AI — almost there');
     startCraftCrawl(96);
 
-    // FIXED: Enclosed in backticks instead of single/double quote hybrid
     const response = await fetch(`${API_BASE}/forge`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -707,9 +715,6 @@ const TEMPLATES = [
   { id: 'legal',      name: 'Law Firm' }
 ];
 
-let galleryMode = 'finalize';      
-let userPickedTemplate = false;    
-
 const _thumbObserver = ('IntersectionObserver' in window)
   ? new IntersectionObserver((entries, obs) => {
       entries.forEach(e => {
@@ -831,7 +836,6 @@ async function generateTemplatePDF(t, card) {
     console.error(err);
     openPopup("Download Error ❌", [
       "Could not generate the PDF.",
-      "Make sure the Flask backend is running on port 5000.",
       err.message || ""
     ]);
   } finally {
@@ -1007,12 +1011,12 @@ const TPL_CSS = {
     .sklabel{font-family:Consolas,monospace;font-size:11px}`,
   elegant: `body{padding:60px 72px;font-family:Georgia,'Garamond','Times New Roman',serif;color:#2b2b2b;line-height:1.6}
     .rhead{text-align:left;padding-bottom:14px;border-bottom:1px solid #b08a3e}
-    h1{font-size:32px;letter-spacing Tram;.3px;font-weight:400}
+    h1{font-size:32px;letter-spacing:.3px;font-weight:400}
     .role{font-style:italic;color:#7d6033;margin-top:4px;font-size:14px}
-    .contact{font-size:11.5px;color:#6b6b6b;margin-top:10px;letter-spacing Tram;.02em}
+    .contact{font-size:11.5px;color:#6b6b6b;margin-top:10px;letter-spacing:.02em}
     .sep{color:#b08a3e}
     .sec{margin-top:20px}
-    h2{font-size:11px;letter-spacing Tram;.28em;text-transform:uppercase;color:#b08a3e;font-weight:700;border-bottom:none;padding-bottom:0;margin-bottom:6px}
+    h2{font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:#b08a3e;font-weight:700;border-bottom:none;padding-bottom:0;margin-bottom:6px}
     .entry{font-weight:700;margin:11px 0 3px;font-size:13.5px}
     .para{margin:6px 0}
     ul{padding-left:20px}li{margin:4px 0}
@@ -1022,30 +1026,30 @@ const TPL_CSS = {
     body::before{content:'';display:block;width:10px;background:linear-gradient(180deg,#0ea5e9,#6366f1);flex-shrink:0}
     body > *{padding-left:46px;padding-right:54px}
     .rhead{padding-top:48px;padding-bottom:14px;border-bottom:2px solid #0f172a}
-    h1{font-size:30px;font-weight:800;letter-spacing Tram:-.5px}
-    .role{font-size:14px;font-weight:600;color:#0ea5e9;margin-top:2px;text-transform:uppercase;letter-spacing Tram;.1em}
+    h1{font-size:30px;font-weight:800;letter-spacing:-.5px}
+    .role{font-size:14px;font-weight:600;color:#0ea5e9;margin-top:2px;text-transform:uppercase;letter-spacing:.1em}
     .contact{font-size:11.5px;color:#475569;margin-top:8px}
     .sec{margin-top:18px}
-    h2{font-size:12px;letter-spacing Tram;.16em;text-transform:uppercase;color:#0f172a;font-weight:800;border:none;padding:0;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+    h2{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:#0f172a;font-weight:800;border:none;padding:0;margin-bottom:6px;display:flex;align-items:center;gap:8px}
     h2::before{content:'';width:14px;height:2px;background:#0ea5e9}
     .entry{font-weight:700;margin:9px 0 2px}
     .chip{background:#e0f2fe;color:#0369a1;border-radius:999px;padding:3px 11px;font-size:11.5px;font-weight:600}
     .sklabel{color:#0369a1}`,
   executive: `body{padding:52px 60px;font-family:'Helvetica Neue',Arial,sans-serif;color:#0a1929}
     .rhead{border-bottom:4px double #1e3a8a;padding-bottom:14px}
-    h1{font-size:34px;font-weight:800;letter-spacing Tram:-.5px;color:#0a1929}
-    .role{font-size:13px;color:#1e3a8a;margin-top:5px;font-weight:700;text-transform:uppercase;letter-spacing Tram;.14em}
+    h1{font-size:34px;font-weight:800;letter-spacing:-.5px;color:#0a1929}
+    .role{font-size:13px;color:#1e3a8a;margin-top:5px;font-weight:700;text-transform:uppercase;letter-spacing:.14em}
     .contact{font-size:11.5px;color:#475569;margin-top:8px}
-    h2{font-size:13px;letter-spacing Tram;.18em;text-transform:uppercase;color:#1e3a8a;font-weight:800;border-bottom:1px solid #1e3a8a;padding-bottom:3px}
+    h2{font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:#1e3a8a;font-weight:800;border-bottom:1px solid #1e3a8a;padding-bottom:3px}
     .entry{font-weight:700;color:#0a1929;margin:10px 0 3px}
     .chip{background:#1e3a8a;color:#fff;border-radius:3px;padding:3px 10px;font-size:11.5px;font-weight:600}`,
   minimalist: `body{padding:64px 80px;font-family:'Helvetica Neue',Arial,sans-serif;color:#1f2937;line-height:1.7}
     .rhead{padding-bottom:20px;border:none}
-    h1{font-size:28px;font-weight:300;letter-spacing Tram:2px;color:#111}
-    .role{font-size:13px;color:#6b7280;margin-top:6px;font-weight:400;letter-spacing Tram Tram:.5px}
+    h1{font-size:28px;font-weight:300;letter-spacing:2px;color:#111}
+    .role{font-size:13px;color:#6b7280;margin-top:6px;font-weight:400;letter-spacing:.5px}
     .contact{font-size:11px;color:#9ca3af;margin-top:14px;letter-spacing Tram Tram:.05em}
     .sec{margin-top:26px}
-    h2{font-size:10px;letter-spacing Tram Tram:.32em;text-transform:uppercase;color:#9ca3af;font-weight:600;border:none;padding:0;margin-bottom:10px}
+    h2{font-size:10px;letter-spacing:.32em;text-transform:uppercase;color:#9ca3af;font-weight:600;border:none;padding:0;margin-bottom:10px}
     .entry{font-weight:500;color:#111;margin:12px 0 4px}
     ul{padding-left:18px}li{margin:5px 0}
     .chip{background:transparent;color:#374151;border:none;padding:0;font-size:12px;font-weight:400;border-radius:0}
@@ -1054,27 +1058,27 @@ const TPL_CSS = {
     .skchips .chip:not(:last-child)::after{content:'·';margin-left:14px;color:#d1d5db}`,
   bold: `body{padding:48px 56px;font-family:Arial,sans-serif;color:#111}
     .rhead{padding-bottom:12px;border-bottom:5px solid #dc2626}
-    h1{font-size:36px;font-weight:900;letter-spacing Tram:-1px;text-transform:uppercase;line-height:1.05;font-family:'Arial Black',Arial,sans-serif}
-    .role{font-size:13px;color:#dc2626;margin-top:5px;font-weight:900;letter-spacing Tram Tram:.15em;text-transform:uppercase}
+    h1{font-size:36px;font-weight:900;letter-spacing:-1px;text-transform:uppercase;line-height:1.05;font-family:'Arial Black',Arial,sans-serif}
+    .role{font-size:13px;color:#dc2626;margin-top:5px;font-weight:900;letter-spacing:.15em;text-transform:uppercase}
     .contact{font-size:11.5px;color:#374151;margin-top:8px;font-weight:500}
-    h2{font-size:14px;letter-spacing Tram;.1em;text-transform:uppercase;color:#111;font-weight:900;border-bottom:3px solid #111;padding-bottom:4px;font-family:'Arial Black',Arial,sans-serif}
+    h2{font-size:14px;letter-spacing:.1em;text-transform:uppercase;color:#111;font-weight:900;border-bottom:3px solid #111;padding-bottom:4px;font-family:'Arial Black',Arial,sans-serif}
     .entry{font-weight:800;color:#111;margin:10px 0 2px}
     .chip{background:#111;color:#fff;border-radius:0;padding:3px 10px;font-size:11.5px;font-weight:700}`,
   corporate: `body{padding:54px 64px;font-family:'Times New Roman',Times,serif;color:#1c2433}
     .rhead{text-align:center;padding-bottom:14px;border-bottom:2px solid #1e3a8a}
-    h1{font-size:32px;font-weight:700;letter-spacing Tram:.5px;color:#1e3a8a}
+    h1{font-size:32px;font-weight:700;letter-spacing:.5px;color:#1e3a8a}
     .role{font-size:14px;color:#374151;margin-top:4px;font-style:italic}
     .contact{font-size:12px;color:#475569;margin-top:10px}
-    h2{font-size:14px;letter-spacing Tram Tram:.04em;color:#1e3a8a;font-weight:700;border-bottom:1px solid #cbd5e1;padding-bottom:3px}
+    h2{font-size:14px;letter-spacing:.04em;color:#1e3a8a;font-weight:700;border-bottom:1px solid #cbd5e1;padding-bottom:3px}
     .entry{font-weight:700;color:#1c2433;margin:10px 0 3px}
     .chip{background:#dbeafe;color:#1e3a8a;border-radius:3px;padding:2px 9px;font-size:11.5px;font-weight:600;font-family:Arial,sans-serif}`,
   leftbar: `body{padding:0;font-family:'Inter','Segoe UI',Arial,sans-serif;color:#0f172a}
     .cols{display:flex;align-items:stretch;min-height:1056px}
     .sidecol{width:260px;background:#0f172a;color:#cbd5e1;padding:38px 26px}
     .sidecol .rhead{padding:0 0 16px;border-bottom:1px solid #334155;margin-bottom:6px}
-    .sidecol h1{font-size:24px;color:#fff;font-weight:800;letter-spacing Tram:-.3px;margin:0}
-    .sidecol .role{font-size:11px;color:#a78bfa;margin-top:5px;font-weight:600;text-transform:uppercase;letter-spacing Tram Tram:.12em}
-    .sidecol h2{font-size:11px;letter-spacing Tram;.16em;text-transform:uppercase;color:#a78bfa;border-bottom:1px solid rgba(167,139,250,.3);padding-bottom:3px;font-weight:700;margin-bottom:6px}
+    .sidecol h1{font-size:24px;color:#fff;font-weight:800;letter-spacing:-.3px;margin:0}
+    .sidecol .role{font-size:11px;color:#a78bfa;margin-top:5px;font-weight:600;text-transform:uppercase;letter-spacing:.12em}
+    .sidecol h2{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#a78bfa;border-bottom:1px solid rgba(167,139,250,.3);padding-bottom:3px;font-weight:700;margin-bottom:6px}
     .sidecol .chip{background:rgba(167,139,250,.18);color:#e9d5ff;font-size:11px;padding:3px 9px;border-radius:3px}
     .sidecol .clist li{color:#cbd5e1;font-size:11.5px;word-break:break-word}
     .sidecol .sklabel{color:#fff}.sidecol .para{color:#cbd5e1;font-size:12px}
@@ -1083,78 +1087,78 @@ const TPL_CSS = {
     .maincol .entry{font-weight:700;color:#0f172a;margin:10px 0 3px}`,
   headerband: `body{padding:0;font-family:'Inter','Segoe UI',Arial,sans-serif;color:#1f2937}
     .rhead{background:linear-gradient(135deg,#7c3aed 0%,#4f46e5 100%);color:#fff;padding:42px 56px}
-    .rhead h1{font-size:32px;font-weight:800;letter-spacing Tram:-.4px;color:#fff;margin:0}
-    .rhead .role{font-size:13px;color:#e9d5ff;margin-top:5px;font-weight:600;letter-spacing Tram Tram:.05em;text-transform:uppercase}
+    .rhead h1{font-size:32px;font-weight:800;letter-spacing:-.4px;color:#fff;margin:0}
+    .rhead .role{font-size:13px;color:#e9d5ff;margin-top:5px;font-weight:600;letter-spacing:.05em;text-transform:uppercase}
     .rhead .contact{font-size:11.5px;color:#ddd6fe;margin-top:10px}
     .rhead .sep{color:rgba(255,255,255,.5)}
     .body-content{padding:30px 56px 50px}
     .body-content .sec{margin-top:18px}
-    h2{font-size:12px;letter-spacing Tram Tram:.14em;text-transform:uppercase;color:#7c3aed;font-weight:700;border-bottom:1px solid #e5e7eb;padding-bottom:3px}
+    h2{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#7c3aed;font-weight:700;border-bottom:1px solid #e5e7eb;padding-bottom:3px}
     .entry{font-weight:700;color:#1f2937;margin:10px 0 3px}
     .chip{background:#f5f3ff;color:#7c3aed;border-radius:999px;padding:3px 10px;font-size:11.5px;font-weight:600}`,
   academic: `body{padding:50px 58px;font-family:'Times New Roman',Times,serif;color:#1c1c1c;font-size:12px;line-height:1.5}
     .rhead{text-align:center;border-bottom:1.5px solid #1c1c1c;padding-bottom:12px}
-    h1{font-size:24px;font-weight:700;letter-spacing Tram Tram:.3px}
+    h1{font-size:24px;font-weight:700;letter-spacing:.3px}
     .role{font-size:13px;color:#444;margin-top:3px;font-style:italic}
     .contact{font-size:11px;color:#444;margin-top:6px}
     .sec{margin-top:14px}
-    h2{font-size:12px;letter-spacing Tram Tram:.04em;color:#1c1c1c;font-weight:700;border:none;padding:0;margin-bottom:4px;text-transform:none}
+    h2{font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:#1c1c1c;font-weight:700;border:none;padding:0;margin-bottom:4px;text-transform:none}
     .entry{font-weight:700;color:#1c1c1c;margin:8px 0 1px;font-size:12px}
-    ul{margin:4px 0 0;padding-left:18px}li{margin:2px 0;font-size:11.5px}
+    ul{margin:3px 0 0;padding-left:18px}li{margin:2px 0;font-size:11.5px}
     .chip{background:transparent;color:#1c1c1c;border:none;padding:0;font-family:'Times New Roman',serif;font-size:11.5px;font-style:italic;border-radius:0}
     .skchips{gap:0;flex-wrap:wrap}.skchips .chip:not(:last-child)::after{content:', ';color:#1c1c1c;font-style:normal}`,
   gradient: `body{padding:52px 56px;font-family:'Inter','Segoe UI',Arial,sans-serif;color:#1f2937}
     .rhead{text-align:center;padding-bottom:16px}
     .rhead::after{content:'';display:block;width:140px;height:3px;margin:14px auto 0;background:linear-gradient(90deg,#0ea5e9,#a855f7,#f43f5e);border-radius:2px}
-    h1{font-size:30px;font-weight:800;letter-spacing Tram:-.3px;background:linear-gradient(90deg,#0ea5e9,#a855f7);-webkit-background-clip:text;background-clip:text;color:transparent}
+    h1{font-size:30px;font-weight:800;letter-spacing:-.3px;background:linear-gradient(90deg,#0ea5e9,#a855f7);-webkit-background-clip:text;background-clip:text;color:transparent}
     .role{font-size:14px;color:#475569;margin-top:4px;font-weight:600}
     .contact{font-size:11.5px;color:#64748b;margin-top:8px}
-    h2{font-size:12px;letter-spacing Tram Tram:.14em;text-transform:uppercase;color:#0ea5e9;font-weight:700;border:none;padding:0;margin-bottom:5px}
+    h2{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#0ea5e9;font-weight:700;border:none;padding:0;margin-bottom:5px}
     .entry{font-weight:700;color:#1f2937;margin:9px 0 2px}
     .chip{background:linear-gradient(135deg,#e0f2fe,#f3e8ff);color:#7c3aed;border-radius:999px;padding:3px 10px;font-size:11.5px;font-weight:600}`,
   sleek: `body{padding:60px 70px;font-family:'Helvetica Neue',Arial,sans-serif;color:#1f2937;line-height:1.7}
     .rhead{padding-bottom:14px;border-bottom:1px solid #d1d5db}
-    h1{font-size:30px;font-weight:200;letter-spacing Tram:6px;text-transform:uppercase;color:#111}
-    .role{font-size:11px;color:#6b7280;margin-top:8px;letter-spacing Tram:4px;text-transform:uppercase;font-weight:500}
-    .contact{font-size:11px;color:#6b7280;margin-top:10px;letter-spacing Tram Tram:.05em}
-    h2{font-size:10px;letter-spacing Tram:.4em;text-transform:uppercase;color:#111;font-weight:600;border:none;margin-bottom:8px;padding:0}
-    .entry{font-weight:500;color:#111;margin:11px 0 3px;letter-spacing Tram:.3px}
-    .chip{background:transparent;color:#374151;border:1px solid #d1d5db;border-radius:0;padding:2px 10px;font-size:10.5px;font-weight:500;letter-spacing Tram:.5px;text-transform:uppercase}`,
+    h1{font-size:30px;font-weight:200;letter-spacing:6px;text-transform:uppercase;color:#111}
+    .role{font-size:11px;color:#6b7280;margin-top:8px;letter-spacing:4px;text-transform:uppercase;font-weight:500}
+    .contact{font-size:11px;color:#6b7280;margin-top:10px;letter-spacing:.05em}
+    h2{font-size:10px;letter-spacing:.4em;text-transform:uppercase;color:#111;font-weight:600;border:none;margin-bottom:8px;padding:0}
+    .entry{font-weight:500;color:#111;margin:11px 0 3px;letter-spacing:.3px}
+    .chip{background:transparent;color:#374151;border:1px solid #d1d5db;border-radius:0;padding:2px 10px;font-size:10.5px;font-weight:500;letter-spacing:.5px;text-transform:uppercase}`,
   brutalist: `body{padding:42px 50px;font-family:Helvetica,Arial,sans-serif;color:#000}
     .rhead{padding:18px;border:3px solid #000;background:#fde047;text-align:left}
-    h1{font-size:34px;font-weight:900;letter-spacing Tram:-1px;text-transform:uppercase;line-height:1}
-    .role{font-size:13px;color:#000;margin-top:6px;font-weight:800;text-transform:uppercase;letter-spacing Tram Tram:.06em}
+    h1{font-size:34px;font-weight:900;letter-spacing:-1px;text-transform:uppercase;line-height:1}
+    .role{font-size:13px;color:#000;margin-top:6px;font-weight:800;text-transform:uppercase;letter-spacing:.06em}
     .contact{font-size:11.5px;color:#000;margin-top:8px;font-weight:600}
-    h2{font-size:13px;letter-spacing Tram Tram:.06em;text-transform:uppercase;color:#000;font-weight:900;border-left:6px solid #000;padding:3px 0 3px 10px;background:#f3f4f6;border-bottom:none;margin-bottom:6px}
+    h2{font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:#000;font-weight:900;border-left:6px solid #000;padding:3px 0 3px 10px;background:#f3f4f6;border-bottom:none;margin-bottom:6px}
     .entry{font-weight:800;color:#000;margin:9px 0 2px}
     .chip{background:#000;color:#fde047;border:2px solid #000;border-radius:0;padding:2px 9px;font-size:11px;font-weight:800;text-transform:uppercase}`,
   warm: `body{padding:54px 64px;font-family:Georgia,'Times New Roman',serif;color:#3a2d1f;background:#fdfbf7}
     .rhead{border-bottom:2px solid #92632a;padding-bottom:14px}
-    h1{font-size:30px;color:#5c3d17;font-weight:700;letter-spacing Tram Tram:.3px}
+    h1{font-size:30px;color:#5c3d17;font-weight:700;letter-spacing:.3px}
     .role{font-size:14px;color:#92632a;margin-top:4px;font-style:italic}
     .contact{font-size:11.5px;color:#7a6647;margin-top:8px}
     .sep{color:#c8a96a}
-    h2{font-size:12px;letter-spacing Tram Tram:.16em;text-transform:uppercase;color:#5c3d17;font-weight:700;border-bottom:1px solid #d4c19a;padding-bottom:3px}
+    h2{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:#5c3d17;font-weight:700;border-bottom:1px solid #d4c19a;padding-bottom:3px}
     .entry{font-weight:700;color:#3a2d1f;margin:10px 0 3px}
     .chip{background:#f5ead0;color:#5c3d17;border-radius:3px;padding:3px 10px;font-size:11.5px;font-weight:600;font-family:Arial,sans-serif}`,
   techpro: `body{padding:46px 52px;font-family:Consolas,'Courier New',monospace;color:#0f172a;font-size:11.5px;line-height:1.55}
     .rhead{padding-bottom:12px;border-bottom:2px solid #10b981}
-    h1{font-size:26px;font-weight:700;letter-spacing Tram:-.5px;color:#10b981;font-family:Consolas,monospace}
+    h1{font-size:26px;font-weight:700;letter-spacing:-.5px;color:#10b981;font-family:Consolas,monospace}
     h1::before{content:'> ';color:#10b981}
     .role{font-size:12px;color:#64748b;margin-top:3px;font-weight:500}
     .role::before{content:'// ';color:#94a3b8}
     .contact{font-size:11px;color:#64748b;margin-top:8px}
-    h2{font-size:11px;letter-spacing Tram;.1em;text-transform:uppercase;color:#10b981;font-weight:700;border:none;padding:0;margin-bottom:5px}
+    h2{font-size:11px;letter-spacing Tram:.1em;text-transform:uppercase;color:#10b981;font-weight:700;border:none;padding:0;margin-bottom:5px}
     h2::before{content:'## ';color:#10b981}
     .entry{font-weight:700;color:#0f172a;margin:8px 0 2px}
     .chip{background:#dcfce7;color:#065f46;border-radius:3px;padding:2px 8px;font-size:10.5px;font-weight:700;font-family:Consolas,monospace}`,
   harvard: `body{padding:54px 64px;font-family:'Times New Roman',Times,serif;color:#000;font-size:11.5px;line-height:1.5}
     .rhead{text-align:center;padding-bottom:6px;border-bottom:none}
-    h1{font-size:22px;font-weight:700;letter-spacing Tram:.6px;text-transform:uppercase}
+    h1{font-size:22px;font-weight:700;letter-spacing:.6px;text-transform:uppercase}
     .role{font-size:11.5px;color:#000;margin-top:2px;font-weight:400}
     .contact{font-size:11px;color:#000;margin-top:4px}
     .sec{margin-top:12px}
-    h2{font-size:12px;letter-spacing Tram Tram:.08em;text-transform:uppercase;color:#000;font-weight:700;border-bottom:1.5px solid #000;padding-bottom:1px;margin-bottom:4px}
+    h2{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#000;font-weight:700;border-bottom:1.5px solid #000;padding-bottom:1px;margin-bottom:4px}
     .entry{font-weight:700;color:#000;margin:7px 0 1px;font-size:11.5px}
     ul{margin:3px 0 0;padding-left:18px}li{margin:2px 0;font-size:11.5px}
     .chip{background:transparent;color:#000;border:none;padding:0;font-family:'Times New Roman',serif;font-size:11.5px;border-radius:0}
@@ -1162,36 +1166,36 @@ const TPL_CSS = {
     .sklabel{color:#000;font-style:italic;font-weight:400;font-size:11.5px}`,
   mckinsey: `body{padding:50px 60px;font-family:Arial,Helvetica,sans-serif;color:#0a1929;font-size:11.5px;line-height:1.55}
     .rhead{padding-bottom:10px;border-bottom:1.5px solid #0a1929}
-    h1{font-size:24px;font-weight:700;letter-spacing Tram:-.3px;color:#0a1929}
-    .role{font-size:12px;color:#374151;margin-top:3px;font-weight:600;text-transform:uppercase;letter-spacing Tram Tram:.06em}
+    h1{font-size:24px;font-weight:700;letter-spacing:-.3px;color:#0a1929}
+    .role{font-size:12px;color:#374151;margin-top:3px;font-weight:600;text-transform:uppercase;letter-spacing:.06em}
     .contact{font-size:11px;color:#475569;margin-top:7px}
-    h2{font-size:12px;letter-spacing Tram Tram:.06em;text-transform:uppercase;color:#0a1929;font-weight:700;border-bottom:none;padding-bottom:0;margin-top:14px;margin-bottom:5px}
+    h2{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#0a1929;font-weight:700;border-bottom:none;padding-bottom:0;margin-top:14px;margin-bottom:5px}
     .entry{font-weight:700;color:#0a1929;margin:8px 0 1px;font-size:12px}
     ul{margin:3px 0 0;padding-left:16px}li{margin:2.5px 0;font-size:11.5px}
     .chip{background:#eff6ff;color:#1e3a8a;border-radius:2px;padding:1px 8px;font-size:11px;font-weight:600}`,
   faang: `body{padding:52px 60px;font-family:'Inter','Segoe UI',Arial,sans-serif;color:#202124;font-size:12px;line-height:1.55}
     .rhead{padding-bottom:14px;border-bottom:1px solid #dadce0}
-    h1{font-size:28px;font-weight:700;color:#202124;letter-spacing Tram:-.4px}
+    h1{font-size:28px;font-weight:700;color:#202124;letter-spacing:-.4px}
     .role{font-size:13px;color:#5f6368;margin-top:4px;font-weight:500}
     .contact{font-size:11.5px;color:#5f6368;margin-top:8px}
-    h2{font-size:13px;letter-spacing Tram Tram:.03em;text-transform:none;color:#1a73e8;font-weight:600;border-bottom:1px solid #e8eaed;padding-bottom:3px}
+    h2{font-size:13px;letter-spacing:.03em;text-transform:none;color:#1a73e8;font-weight:600;border-bottom:1px solid #e8eaed;padding-bottom:3px}
     .entry{font-weight:600;color:#202124;margin:10px 0 3px}
     .chip{background:#e8f0fe;color:#1967d2;border-radius:4px;padding:2px 9px;font-size:11.5px;font-weight:500}`,
   linkedin: `body{padding:50px 58px;font-family:'Segoe UI','Helvetica Neue',Arial,sans-serif;color:rgba(0,0,0,.9);font-size:12px;line-height:1.55}
     .rhead{padding-bottom:16px;border-bottom:1px solid #e0e0e0}
-    h1{font-size:30px;font-weight:600;letter-spacing Tram:-.2px}
-    .role{font-size:14px;color:rgba(0,0,0,.6);margin-top:4px;font-weight:400}
+    h1{font-size:30px;font-weight:600;letter-spacing:-.2px}
+    .role{font-size:14px;colorrgba(0,0,0,.6);margin-top:4px;font-weight:400}
     .contact{font-size:12px;color:#0a66c2;margin-top:8px;font-weight:500}
-    h2{font-size:14px;letter-spacing Tram:0;text-transform:none;color:rgba(0,0,0,.9);font-weight:600;border-bottom:1px solid #e0e0e0;padding-bottom:4px;margin-top:18px}
+    h2{font-size:14px;letter-spacing:0;text-transform:none;color:rgba(0,0,0,.9);font-weight:600;border-bottom:1px solid #e0e0e0;padding-bottom:4px;margin-top:18px}
     .entry{font-weight:600;color:rgba(0,0,0,.9);margin:10px 0 3px;font-size:13px}
     .chip{background:#f3f2ef;color:rgba(0,0,0,.9);border-radius:3px;padding:3px 10px;font-size:11.5px;font-weight:500}`,
   investment: `body{padding:48px 58px;font-family:'Times New Roman',Times,serif;color:#000;font-size:11px;line-height:1.45}
     .rhead{text-align:center;padding-bottom:8px;border-bottom:.75px solid #000}
-    h1{font-size:20px;font-weight:700;letter-spacing Tram:1.2px;text-transform:uppercase}
+    h1{font-size:20px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase}
     .role{font-size:11px;color:#000;margin-top:2px;font-weight:400}
     .contact{font-size:10.5px;color:#000;margin-top:4px}
     .sec{margin-top:11px}
-    h2{font-size:11px;letter-spacing Tram Tram:.14em;text-transform:uppercase;color:#000;font-weight:700;border-bottom:.75px solid #000;padding-bottom:1px;font-variant:small-caps}
+    h2{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#000;font-weight:700;border-bottom:.75px solid #000;padding-bottom:1px;font-variant:small-caps}
     .entry{font-weight:700;color:#000;margin:6px 0 1px;font-size:11.5px}
     ul{margin:2px 0 0;padding-left:14px}li{margin:1.5px 0;font-size:11px}
     .chip{background:transparent;color:#000;border:none;padding:0;font-family:'Times New Roman',serif;font-size:11px;border-radius:0}
@@ -1199,11 +1203,11 @@ const TPL_CSS = {
     .skchips .chip:not(:last-child)::after{content:' • ';color:#000}`,
   atsclean: `body{padding:50px 60px;font-family:Arial,Helvetica,sans-serif;color:#000;font-size:11.5px;line-height:1.5}
     .rhead{padding-bottom:6px;border:none}
-    h1{font-size:20px;font-weight:700;color:#000;text-transform:uppercase;letter-spacing Tram Tram:.2px}
+    h1{font-size:20px;font-weight:700;color:#000;text-transform:uppercase;letter-spacing:.2px}
     .role{font-size:12px;color:#000;margin-top:2px;font-weight:600}
     .contact{font-size:11px;color:#000;margin-top:4px}
     .sec{margin-top:14px}
-    h2{font-size:13px;letter-spacing Tram Tram:.04em;text-transform:uppercase;color:#000;font-weight:700;border-bottom:1px solid #000;padding-bottom:2px;margin-bottom:5px}
+    h2{font-size:13px;letter-spacing:.04em;text-transform:uppercase;color:#000;font-weight:700;border-bottom:1px solid #000;padding-bottom:2px;margin-bottom:5px}
     .entry{font-weight:700;color:#000;margin:7px 0 1px}
     ul{margin:2px 0 0;padding-left:18px}li{margin:2px 0;font-size:11.5px}
     .chip{background:transparent;color:#000;border:none;padding:0;font-family:Arial,sans-serif;font-size:11.5px;border-radius:0;font-weight:400}
@@ -1211,19 +1215,19 @@ const TPL_CSS = {
     .sklabel{color:#000;font-weight:700;font-size:11.5px}`,
   healthcare: `body{padding:54px 60px;font-family:Calibri,'Trebuchet MS',Arial,sans-serif;color:#1a3a52;font-size:12px;line-height:1.55}
     .rhead{padding-bottom:12px;border-bottom:2px solid #008080}
-    h1{font-size:28px;font-weight:700;color:#003c5f;letter-spacing Tram:-.2px}
+    h1{font-size:28px;font-weight:700;color:#003c5f;letter-spacing:-.2px}
     .role{font-size:13px;color:#008080;margin-top:4px;font-weight:600}
     .contact{font-size:11.5px;color:#5a7a8a;margin-top:8px}
-    h2{font-size:13px;letter-spacing Tram Tram:.06em;text-transform:uppercase;color:#003c5f;font-weight:700;border-bottom:1px solid #b3d4dc;padding-bottom:3px}
+    h2{font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:#003c5f;font-weight:700;border-bottom:1px solid #b3d4dc;padding-bottom:3px}
     .entry{font-weight:700;color:#1a3a52;margin:9px 0 2px}
     .chip{background:#e0f2f5;color:#003c5f;border-radius:3px;padding:2px 9px;font-size:11.5px;font-weight:600}`,
   legal: `body{padding:56px 66px;font-family:'Garamond','Times New Roman',Times,serif;color:#0a0a0a;font-size:12.5px;line-height:1.55}
     .rhead{text-align:center;padding-bottom:10px;border-bottom:.75px solid #0a0a0a}
-    h1{font-size:26px;font-weight:700;letter-spacing Tram:.5px;font-variant:small-caps}
+    h1{font-size:26px;font-weight:700;letter-spacing:.5px;font-variant:small-caps}
     .role{font-size:12.5px;color:#3a3a3a;margin-top:3px;font-style:italic}
     .contact{font-size:11.5px;color:#3a3a3a;margin-top:6px}
     .sec{margin-top:14px}
-    h2{font-size:12.5px;letter-spacing Tram Tram:.04em;color:#0a0a0a;font-weight:700;border-bottom:none;padding-bottom:0;margin-bottom:4px;font-variant:small-caps;text-transform:none}
+    h2{font-size:12.5px;letter-spacing:.04em;color:#0a0a0a;font-weight:700;border-bottom:none;padding-bottom:0;margin-bottom:4px;font-variant:small-caps;text-transform:none}
     .entry{font-weight:700;color:#0a0a0a;margin:8px 0 2px;font-size:12.5px}
     ul{margin:3px 0 0;padding-left:18px}li{margin:2px 0;font-size:12px}
     .chip{background:transparent;color:#0a0a0a;border:none;padding:0;font-family:Garamond,serif;font-size:12px;border-radius:0;font-style:italic}
@@ -1396,9 +1400,6 @@ document.addEventListener('keydown', (e) => {
 //  START FROM SCRATCH
 // ==========================================================
 const scratchModal = document.getElementById('scratchModal');
-let scratchText = '';
-let scratchGenerated = false;   
-const BASIC_TEMPLATE = 'modern';   
 
 function resetScratchForm() {
   scratchModal.querySelectorAll('input.sf-in, textarea.sf-in').forEach(el => { el.value = ''; });
@@ -1597,349 +1598,4 @@ function flagMissingFields() {
   checks.forEach(([id, label]) => {
     const el = document.getElementById(id);
     if (el && !el.value.trim()) {
-      el.classList.add('sf-empty-flag');
-      missing.push(label);
-    }
-  });
-
-  const skillCount = Array.from(document.querySelectorAll('#sfSkills .sf-skill-in'))
-    .filter(i => i.value.trim()).length;
-  if (skillCount < 3) missing.push('At least 3 skills');
-
-  const banner = document.getElementById('sfMissingBanner');
-  const list   = document.getElementById('sfMissingList');
-  if (missing.length) {
-    list.textContent = missing.join(' · ');
-    banner.classList.remove('hidden');
-  } else {
-    banner.classList.add('hidden');
-  }
-}
-
-async function handleSfFile(file) {
-  if (!file) return;
-  const errEl = document.getElementById('sfUploadError');
-  const idle  = document.getElementById('sfUploadIdle');
-  const busy  = document.getElementById('sfUploadBusy');
-  const done  = document.getElementById('sfUploadDone');
-  errEl.classList.add('hidden');
-  idle.classList.add('hidden');
-  done.classList.add('hidden');
-  busy.classList.remove('hidden');
-  busy.classList.add('flex');
-
-  try {
-    const fd = new FormData();
-    fd.append('resume', file);
-    const res = await fetch(`${API_BASE}/parse-resume`, { method: 'POST', body: fd });
-    const json = await res.json();
-    if (!json.success) throw new Error(json.error || 'Failed to parse resume');
-
-    populateScratchForm(json.data || {});
-    document.getElementById('sfUploadFileName').textContent = file.name;
-    done.classList.remove('hidden');
-    done.classList.add('flex');
-  } catch (err) {
-    console.error('Resume parse error:', err);
-    errEl.textContent = err.message || 'Could not read this resume.';
-    errEl.classList.remove('hidden');
-    idle.classList.remove('hidden');
-  } finally {
-    busy.classList.add('hidden');
-    busy.classList.remove('flex');
-  }
-}
-
-document.getElementById('sfPickFileBtn').addEventListener('click', () => sfHiddenFileInput.click());
-sfHiddenFileInput.addEventListener('change', (e) => handleSfFile(e.target.files[0]));
-
-if (sfUploadCard) {
-  ['dragenter', 'dragover'].forEach(ev =>
-    sfUploadCard.addEventListener(ev, (e) => { e.preventDefault(); sfUploadCard.classList.add('sf-drag-over'); }));
-  ['dragleave', 'drop'].forEach(ev =>
-    sfUploadCard.addEventListener(ev, (e) => { e.preventDefault(); sfUploadCard.classList.remove('sf-drag-over'); }));
-  sfUploadCard.addEventListener('drop', (e) => {
-    const f = e.dataTransfer?.files?.[0];
-    if (f) handleSfFile(f);
-  });
-}
-
-document.getElementById('sfClearUploadBtn').addEventListener('click', () => {
-  populateScratchForm({});
-  document.getElementById('sfUploadDone').classList.add('hidden');
-  document.getElementById('sfUploadIdle').classList.remove('hidden');
-  sfHiddenFileInput.value = '';
-});
-
-document.querySelector('.sf-card-root').addEventListener('input', () => {
-  if (!document.getElementById('sfMissingBanner').classList.contains('hidden')) flagMissingFields();
-});
-
-function sfVal(id) { const el = document.getElementById(id); return el ? el.value.trim() : ''; }
-
-function sfEduLine(course, inst, year, score) {
-  let head = [course, inst].filter(Boolean).join(', ');
-  const tail = [year, score].filter(Boolean).join(' · ');
-  if (tail) head += (head ? ' — ' : '') + tail;
-  return head;
-}
-
-function sfBullets(text) {
-  return text.split(/\n+/).map(s => s.trim()).filter(Boolean)
-    .map(s => '• ' + s.replace(/^[-•*]\s*/, ''));
-}
-
-document.getElementById('sfBuildBtn').addEventListener('click', buildScratchResume);
-
-function buildScratchResume() {
-  const err = document.getElementById('sfError');
-  const fail = (msg) => { err.textContent = msg; err.classList.remove('hidden'); err.scrollIntoView({ behavior: 'smooth', block: 'center' }); };
-
-  const name = sfVal('sfName');
-  const ugCourse = sfVal('sfUgCourse');
-  const ugInst = sfVal('sfUgInst');
-  if (!name) return fail('Please enter your full name.');
-  if (!ugCourse || !ugInst) return fail('Undergraduate (UG) degree and institution are required.');
-  err.classList.add('hidden');
-
-  const lines = [];
-  lines.push(name);
-  const role = sfVal('sfRole'); if (role) lines.push(role);
-
-  const contact = [sfVal('sfEmail'), sfVal('sfMobile'), sfVal('sfLinkedin'), sfVal('sfGithub')].filter(Boolean);
-  if (contact.length) lines.push(contact.join(' | '));
-  lines.push('');
-
-  const summary = sfVal('sfSummary');
-  if (summary) lines.push('PROFESSIONAL SUMMARY', summary, '');
-
-  const skills = Array.from(document.querySelectorAll('#sfSkills .sf-skill-in')).map(i => i.value.trim()).filter(Boolean);
-  if (skills.length) lines.push('TECHNICAL SKILLS', skills.join(', '), '');
-
-  const edu = [
-    sfEduLine(sfVal('sfPgCourse'), sfVal('sfPgInst'), sfVal('sfPgYear'), sfVal('sfPgScore')),
-    sfEduLine(ugCourse, ugInst, sfVal('sfUgYear'), sfVal('sfUgScore')),
-    sfEduLine(sfVal('sfSchCourse'), sfVal('sfSchInst'), sfVal('sfSchYear'), sfVal('sfSchScore'))
-  ].filter(Boolean);
-  if (edu.length) lines.push('EDUCATION', ...edu, '');
-
-  const interns = [];
-  document.querySelectorAll('#sfInterns .sf-block').forEach(b => {
-    const r = b.querySelector('.i-role').value.trim();
-    const o = b.querySelector('.i-org').value.trim();
-    const w = b.querySelector('.i-when').value.trim();
-    const loc = b.querySelector('.i-loc').value.trim();
-    const d = b.querySelector('.i-desc').value.trim();
-    if (!r && !o && !d) return;
-    let head = [r, o].filter(Boolean).join(' — ');
-    const meta = [loc, w].filter(Boolean).join(', ');
-    if (meta) head += (head ? '   ' : '') + meta;
-    if (head) interns.push(head);
-    if (d) interns.push(...sfBullets(d));
-  });
-  if (interns.length) lines.push('INTERNSHIPS', ...interns, '');
-
-  const projects = [];
-  document.querySelectorAll('#sfProjects .sf-block').forEach(b => {
-    const n = b.querySelector('.p-name').value.trim();
-    const tech = b.querySelector('.p-tech').value.trim();
-    const d = b.querySelector('.p-desc').value.trim();
-    if (!n && !d) return;
-    let head = n;
-    if (tech) head += (head ? '   ' : '') + tech;
-    if (head) projects.push(head);
-    if (d) projects.push(...sfBullets(d));
-  });
-  if (projects.length) lines.push('ACADEMIC PROJECTS', ...projects, '');
-
-  const certs = Array.from(document.querySelectorAll('#sfCerts .c-name')).map(i => i.value.trim()).filter(Boolean).map(c => '• ' + c);
-  if (certs.length) lines.push('CERTIFICATIONS', ...certs, '');
-
-  const hobbies = sfVal('sfHobbies');
-  if (hobbies) lines.push('HOBBIES', hobbies, '');
-
-  const text = lines.join('\n').replace(/\n{3,}/g, '\n\n').trim();
-
-  scratchText = text;
-  closeScratchModal();
-  openBuildChoice();
-}
-
-// ==========================================================
-//  BUILD CHOICE
-// ==========================================================
-const buildChoiceModal = document.getElementById('buildChoiceModal');
-const basicModal = document.getElementById('basicModal');
-
-function openBuildChoice() {
-  document.getElementById('buildJDPanel').classList.add('hidden');
-  document.getElementById('buildChoiceButtons').classList.remove('hidden');
-  document.getElementById('scratchJD').value = '';
-  document.getElementById('scratchJDErr').classList.add('hidden');
-  buildChoiceModal.classList.remove('hidden');
-}
-function closeBuildChoice() { buildChoiceModal.classList.add('hidden'); }
-
-document.getElementById('closeBuildChoiceBtn').addEventListener('click', closeBuildChoice);
-buildChoiceModal.addEventListener('click', (e) => { if (e.target === buildChoiceModal) closeBuildChoice(); });
-
-document.getElementById('buildNormalBtn').addEventListener('click', () => {
-  parsedResume = parseResume(scratchText);
-  pendingLabel = 'My_Resume';
-  closeBuildChoice();
-  openBasicPreview(chosenTemplate, 'finalize');
-});
-
-let currentPreviewTemplate = BASIC_TEMPLATE;
-let chosenTemplate = BASIC_TEMPLATE;          
-let previewMode = 'finalize';                  
-
-function openBasicPreview(tplId, mode) {
-  currentPreviewTemplate = tplId || BASIC_TEMPLATE;
-  previewMode = mode || 'finalize';
-  const meta = TEMPLATES.find(t => t.id === currentPreviewTemplate);
-  const subtitle = document.getElementById('basicSubtitle');
-  if (subtitle) {
-    const suffix = previewMode === 'browse'
-      ? 'use this design for your resume.'
-      : 'preview below, then download as PDF.';
-    subtitle.textContent = meta ? `${meta.name} — ${suffix}` : 'Preview below.';
-  }
-  const btn = document.getElementById('basicDownloadBtn');
-  const lbl = btn.querySelector('.b-lbl');
-  if (previewMode === 'browse') {
-    lbl.textContent = 'Use this template →';
-    btn.classList.add('sf-use-mode');
-  } else {
-    lbl.textContent = '⬇ Download PDF';
-    btn.classList.remove('sf-use-mode');
-  }
-  const frame = document.getElementById('basicFrame');
-  frame.srcdoc = buildResumeDoc(parsedResume, currentPreviewTemplate);
-  basicModal.classList.remove('hidden');
-  const fit = () => { frame.style.transform = `scale(${frame.parentElement.clientWidth / 816})`; };
-  frame.addEventListener('load', fit);
-  requestAnimationFrame(fit);
-}
-function closeBasicPreview() { basicModal.classList.add('hidden'); }
-document.getElementById('closeBasicBtn').addEventListener('click', closeBasicPreview);
-basicModal.addEventListener('click', (e) => { if (e.target === basicModal) closeBasicPreview(); });
-window.addEventListener('resize', () => {
-  const f = document.getElementById('basicFrame');
-  if (f && !basicModal.classList.contains('hidden')) f.style.transform = `scale(${f.parentElement.clientWidth / 816})`;
-});
-
-document.getElementById('basicDownloadBtn').addEventListener('click', () => {
-  if (previewMode === 'browse') return useChosenTemplate();
-  return downloadBasic();
-});
-
-function useChosenTemplate() {
-  chosenTemplate = currentPreviewTemplate;
-  userPickedTemplate = true;
-  basicModal.classList.add('hidden');
-  templateModal.classList.add('hidden');
-  if (pendingLabel === 'Sample') { parsedResume = null; pendingLabel = ''; }
-  openScratchModal();
-  showTemplateToast(`Template selected: ${(TEMPLATES.find(t => t.id === chosenTemplate) || {}).name || chosenTemplate}`);
-}
-
-async function downloadBasic() {
-  const btn = document.getElementById('basicDownloadBtn');
-  const lbl = btn.querySelector('.b-lbl');
-  if (btn.disabled) return;
-  btn.disabled = true;
-  const old = lbl.textContent;
-  lbl.textContent = 'Generating…';
-  try {
-    const html = buildResumeDoc(parsedResume, currentPreviewTemplate);
-    const fileName = `Resume_${pendingLabel}_${currentPreviewTemplate}`;
-    
-    // FIXED: Corrected single-quote mapping to a proper backtick expression string
-    const res = await fetch(`${API_BASE}/render-pdf`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ html, filename: fileName })
-    });
-    if (!res.ok) {
-      let m = 'PDF generation failed';
-      try { const e = await res.json(); m = e.error || m; } catch (_) {}
-      throw new Error(m);
-    }
-    const blob = await res.blob();
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = `${fileName}.pdf`;
-    document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-    showTemplateToast('Resume downloaded');
-    scratchGenerated = true;   
-  } catch (err) {
-    console.error(err);
-    openPopup("Download Error ❌", [
-      "Could not generate the PDF.",
-      "Make sure the Flask backend is running on port 5000.",
-      err.message || ""
-    ]);
-  } finally {
-    btn.disabled = false;
-    lbl.textContent = old;
-  }
-}
-
-document.getElementById('buildJDBtn').addEventListener('click', () => {
-  document.getElementById('buildChoiceButtons').classList.add('hidden');
-  document.getElementById('buildJDPanel').classList.remove('hidden');
-  document.getElementById('scratchJD').focus();
-});
-document.getElementById('backChoiceBtn').addEventListener('click', () => {
-  document.getElementById('buildJDPanel').classList.add('hidden');
-  document.getElementById('buildChoiceButtons').classList.remove('hidden');
-});
-document.getElementById('runJDBtn').addEventListener('click', runScratchJD);
-
-async function runScratchJD() {
-  const jd = document.getElementById('scratchJD').value.trim();
-  const jderr = document.getElementById('scratchJDErr');
-  if (jd.length < 30) {
-    jderr.textContent = 'Please paste the full job description (at least a few lines).';
-    jderr.classList.remove('hidden');
-    return;
-  }
-  jderr.classList.add('hidden');
-
-  currentResumeText = scratchText;
-  currentJobDesc = jd;
-  closeBuildChoice();
-
-  document.getElementById('craftLoading').classList.remove('hidden');
-  document.getElementById('craftResults').classList.add('hidden');
-  document.getElementById('craftStatusBadge').classList.remove('hidden');
-  craftModal.classList.remove('hidden');
-
-  try {
-    // FIXED: Corrected template literal string declaration mapping
-    const res = await fetch(`${API_BASE}/analyze`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ resume_text: scratchText, job_description: jd })
-    });
-    const data = await res.json();
-    if (!data.success) throw new Error(data.error || 'Analysis failed');
-
-    currentAnalysis = data.analysis;
-    currentResumeText = data.resume_text || scratchText;
-
-    craftModal.classList.add('hidden');
-    startCraftFlow();
-    scratchGenerated = true;   
-  } catch (err) {
-    console.error(err);
-    craftModal.classList.add('hidden');
-    openPopup("Analysis Error ❌", [
-      "Could not analyze the resume.",
-      "Make sure the Flask backend is running on port 5000.",
-      err.message || ""
-    ]);
-  }
-}
+      el.classList.add('
