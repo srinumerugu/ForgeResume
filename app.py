@@ -571,6 +571,11 @@ def keyword_coverage(jd_skills, missing):
             "note": f"{present} of {total} job keywords present in your resume."}
 
 
+def dat_format_checks(resume_text):
+    # Fixed naming alignment inside format evaluation
+    return ats_format_checks(resume_text)
+
+
 def ats_format_checks(resume_text):
     t = resume_text or ""
     tl = t.lower()
@@ -1094,7 +1099,6 @@ def extract_resume():
         delete_file(file_path)
 
 
-
 # ===============================================
 # 6b. PARSE RESUME → STRUCTURED FORM (autofill)
 # ===============================================
@@ -1169,7 +1173,7 @@ def parse_resume_to_form():
 
 
 # =========================
-# 7. RENDER RESUME PDF  (server-side, exact rendering via Chromium)
+# 7. RENDER RESUME PDF  (server-side, conversion via WeasyPrint)
 # =========================
 
 @app.route("/render-pdf", methods=["POST"])
@@ -1181,15 +1185,6 @@ def render_pdf():
 
         if not html or len(html) < 20:
             return jsonify({"success": False, "error": "No HTML provided"}), 400
-
-        return jsonify({
-            "success": True,
-            "html": html,
-            "filename": filename
-        })
-
-    except Exception as e:
-        return jsonify({"success": False, "error": str(e)}), 500
 
         from weasyprint import HTML
         pdf_bytes = HTML(string=html).write_pdf()
@@ -1203,8 +1198,6 @@ def render_pdf():
 
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
-
-        
 
 
 # =========================
