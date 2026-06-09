@@ -1182,6 +1182,15 @@ def render_pdf():
         if not html or len(html) < 20:
             return jsonify({"success": False, "error": "No HTML provided"}), 400
 
+        return jsonify({
+            "success": True,
+            "html": html,
+            "filename": filename
+        })
+
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
         from weasyprint import HTML
         pdf_bytes = HTML(string=html).write_pdf()
 
