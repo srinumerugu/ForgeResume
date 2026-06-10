@@ -18,7 +18,7 @@ window.onload = function() {
 // ================================
 // UPLOAD BOX
 // ================================
-const API_BASE = "https://forgeresume.onrender.com/";
+const API_BASE = "https://forgeresume.onrender.com";
 const uploadBox = document.getElementById('uploadSection');
 const fileInput = document.createElement('input');
 fileInput.type = 'file';
@@ -432,7 +432,7 @@ async function runCraftAI() {
     startCraftCrawl(96);
 
     // FIX: Send the actual resume text in the request body
-    const response = await fetch("${API_BASE}/forge", {
+    const response = await fetch(`${API_BASE}/forge`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -1939,7 +1939,7 @@ async function downloadBasic() {
   try {
     const html = buildResumeDoc(parsedResume, currentPreviewTemplate);
     const fileName = `Resume_${pendingLabel}_${currentPreviewTemplate}`;
-    const res = await fetch('${API_BASE}/render-pdf', {
+    const res = await fetch(`${API_BASE}/render-pdf`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ html, filename: fileName })
@@ -2003,7 +2003,7 @@ async function runScratchJD() {
   craftModal.classList.remove('hidden');
 
   try {
-    const res = await fetch('${API_BASE}/analyze', {
+    const res = await fetch(`${API_BASE}/analyze`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ resume_text: scratchText, job_description: jd })
