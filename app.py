@@ -30,8 +30,10 @@ except Exception:
 load_dotenv()
 
 API_KEY = os.getenv("GEMINI_API_KEY")
-GEMINI_MODEL = "gemini-2.5-flash-lite"
-API_URL = f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:generateContent"
+MODELS = [
+    "gemini-2.5-flash",
+    "gemini-2.5-flash-lite",
+]
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
@@ -69,17 +71,26 @@ def _word_count(s):
     return len((s or "").split())
 
 
-def _extract_pdf_pdfplumber(path):
-    text = ""
+def extract_pdf(path):
     try:
-        with pdfplumber.open(path) as pdf:
-            for page in pdf.pages:
-                t = page.extract_text()
-                if t:
-                    text += t + "\n"
+        best = _extract_pdf_pdfplumber(path)
+
+        if _word_count(best) < 80:
+            alt = _extract_pdf_pymupdf(path)
+
+            if _word_count(alt) > _word_count(best):
+                best = alt
+
+        if _word_count(best) < 80:
+            ocr = _extract_pdf_ocr(path)
+
+            if _word_count(ocr) > _word_count(best):
+                best = ocr
+
+        return best
+
     except Exception:
-        pass
-    return text
+        return ""
 
 
 def _extract_pdf_pymupdf(path):
@@ -128,8 +139,13 @@ def extract_pdf(path):
 
 
 def extract_docx(path):
-    doc = Document(path)
-    return "\n".join([p.text for p in doc.paragraphs])
+    try:
+        doc = Document(path)
+        return "\n".join(
+            p.text for p in doc.paragraphs if p.text
+        )
+    except Exception:
+        return ""
 
 
 def extract_text(path):
@@ -142,74 +158,130 @@ def extract_text(path):
 
 def clean_json(text):
     text = text.strip()
-    match = re.search(r'\{.*\}', text, re.DOTALL)
-    if match:
-        text = match.group(0)
-    text = text.replace("```json", "").replace("```", "")
-    text = text.strip()
-    return text
 
+    text = text.replace("```json", "")
+    text = text.replace("```", "")
 
-def call_ai(prompt, temperature=0.4, max_retries=4):
-    payload = {
-        "contents": [{"parts": [{"text": prompt}]}],
-        "generationConfig": {
-            "temperature": temperature,
-            "thinkingConfig": {"thinkingBudget": 0},
-        },
-    }
-    headers = {"Content-Type": "application/json", "x-goog-api-key": API_KEY}
+    start = text.find("{")
+    end = text.rfind("}")
 
-    last_err = None
-    quota_hit = False
-    for attempt in range(max_retries):
+    if start != -1 and end != -1:
+        text = text[start:end + 1]
+
+    return text.strip()
+MODELS = [
+    "gemini-2.5-flash",
+    "gemini-2.5-flash-lite",
+]
+
+def call_ai(prompt, temperature=0.4):
+    last_error = None
+
+    for model in MODELS:
+        api_url = (
+            f"https://generativelanguage.googleapis.com/v1beta/models/"
+            f"{model}:generateContent"
+        )
+
         try:
-            response = requests.post(API_URL, headers=headers, json=payload, timeout=60)
+            payload = {
+                "contents": [
+                    {
+                        "parts": [
+                            {"text": prompt}
+                        ]
+                    }
+                ],
+                "generationConfig": {
+                    "temperature": temperature,
+                    "thinkingConfig": {
+                        "thinkingBudget": 0
+                    }
+                }
+            }
 
-            # Hard quota exhaustion (free tier daily limit). No amount of retrying helps.
-            if response.status_code == 429 and "quota" in response.text.lower():
-                quota_hit = True
-                last_err = "daily quota exceeded"
-                break
+            headers = {
+                "Content-Type": "application/json",
+                "x-goog-api-key": API_KEY
+            }
 
-            # Transient server-side errors — back off (respecting Retry-After if given).
-            if response.status_code in (429, 500, 502, 503, 504):
-                last_err = f"HTTP {response.status_code}: {response.text[:200]}"
-                wait = float(response.headers.get("Retry-After", 2 ** attempt))
-                time.sleep(min(wait, 30))
+            response = requests.post(
+                api_url,
+                headers=headers,
+                json=payload,
+                timeout=120
+            )
+
+            try:
+                data = response.json()
+            except Exception:
+                raise Exception(
+                    f"Gemini returned invalid response. "
+                    f"Status={response.status_code}, "
+                    f"Body={response.text[:500]}"
+                )
+
+            # Quota exceeded -> try next model
+            if response.status_code == 429:
+                print(f"⚠️ {model} quota exceeded, trying next model...")
+                last_error = data
                 continue
 
-            data = response.json()
+            # Temporary server issues -> try next model
+            if response.status_code >= 500:
+                print(f"⚠️ {model} server error, trying next model...")
+                last_error = data
+                continue
+
             if "error" in data:
-                msg = data["error"].get("message", str(data["error"])) if isinstance(data["error"], dict) else str(data["error"])
-                low = msg.lower()
-                if "quota" in low or "exhaust" in low:
-                    quota_hit = True
-                    last_err = msg
-                    break
-                if any(s in low for s in ("overloaded", "unavailable", "rate")):
-                    last_err = msg
-                    time.sleep(2 ** attempt)
+                msg = data["error"].get("message", str(data["error"]))
+
+                # Quota / rate limit
+                if any(x in msg.lower() for x in [
+                    "quota",
+                    "rate limit",
+                    "resource exhausted"
+                ]):
+                    print(f"⚠️ {model} exhausted, trying next model...")
+                    last_error = msg
                     continue
+
                 raise Exception(msg)
 
-            parts = data["candidates"][0]["content"]["parts"]
-            texts = [p.get("text", "") for p in parts if not p.get("thought") and p.get("text")]
-            out = "".join(texts).strip()
-            if not out:
-                raise Exception(f"Empty Gemini response: {data}")
-            return out
-        except requests.exceptions.RequestException as e:
-            last_err = str(e)
-            time.sleep(2 ** attempt)
+            candidates = data.get("candidates", [])
+
+            if not candidates:
+                raise Exception(f"No candidates returned: {data}")
+
+            parts = (
+                candidates[0]
+                .get("content", {})
+                .get("parts", [])
+            )
+
+            text = "".join(
+                p.get("text", "")
+                for p in parts
+                if p.get("text")
+            ).strip()
+
+            if not text:
+                raise Exception("Empty Gemini response")
+
+            print(f"✅ Success using {model}")
+
+            return text
+
+        except Exception as e:
+            print(f"❌ {model} failed: {e}")
+            last_error = e
             continue
 
-    if quota_hit:
-        raise Exception(
-            "You've hit Gemini's free-tier daily quota. Options: wait until it resets at midnight Pacific, "
-            "switch to a smaller model (gemini-2.5-flash-lite), or enable billing at https://aistudio.google.com/app/apikey."
-        )
-    raise Exception(f"Gemini is overloaded — please retry in a moment. (last error: {last_err})")
+    raise Exception(
+        f"All Gemini models failed. Last error: {last_error}"
+    )
+
+
 
 
 def build_analyze_prompt(job_desc, resume_text):
