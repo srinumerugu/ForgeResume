@@ -1007,11 +1007,11 @@ Return ONLY valid JSON — no markdown, no preamble, no explanation outside the 
   }},
   "version1": {{
     "score": <integer 85-98>,
-    "full_resume": "<Complete resume as plain text with \\n for line breaks — every technology, metric, company, title, and date preserved exactly; only the wording optimized for ATS>"
+    "full_resume": "<Resume text. Escape all newlines as \\n. Must be a valid JSON string. No raw line breaks, tabs, or unescaped quotes. Every technology, metric, company, title, and date preserved exactly; only the wording optimized for ATS>"
   }},
   "version2": {{
     "score": <integer 85-98>,
-    "full_resume": "<Complete resume as plain text with \\n for line breaks — every technology, metric, company, title, and date preserved exactly; only the wording optimized for ATS>"
+    "full_resume": "<Resume text. Escape all newlines as \\n. Must be a valid JSON string. No raw line breaks, tabs, or unescaped quotes. Every technology, metric, company, title, and date preserved exactly; only the wording optimized for ATS>"
   }},
   "recommendation": "Which version to submit where, given both contain the same facts and technologies"
 }}"""
