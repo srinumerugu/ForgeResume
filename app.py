@@ -71,26 +71,41 @@ def _word_count(s):
     return len((s or "").split())
 
 
-def extract_pdf(path):
+def _extract_pdf_pdfplumber(path):
+    text = ""
+
     try:
-        best = _extract_pdf_pdfplumber(path)
-
-        if _word_count(best) < 80:
-            alt = _extract_pdf_pymupdf(path)
-
-            if _word_count(alt) > _word_count(best):
-                best = alt
-
-        if _word_count(best) < 80:
-            ocr = _extract_pdf_ocr(path)
-
-            if _word_count(ocr) > _word_count(best):
-                best = ocr
-
-        return best
-
+        with pdfplumber.open(path) as pdf:
+            for page in pdf.pages:
+                text += (page.extract_text() or "") + "\n"
     except Exception:
         return ""
+
+    return text
+
+
+def _extract_pdf_pymupdf(path):
+    ...
+    
+
+def _extract_pdf_ocr(path):
+    ...
+
+
+def extract_pdf(path):
+    best = _extract_pdf_pdfplumber(path)
+
+    if _word_count(best) < 80:
+        alt = _extract_pdf_pymupdf(path)
+        if _word_count(alt) > _word_count(best):
+            best = alt
+
+    if _word_count(best) < 80:
+        ocr = _extract_pdf_ocr(path)
+        if _word_count(ocr) > _word_count(best):
+            best = ocr
+
+    return best
 
 
 def _extract_pdf_pymupdf(path):
