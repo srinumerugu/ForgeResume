@@ -445,7 +445,10 @@ async function runCraftAI() {
       })
     });
 
-    const data = await response.json();
+    const text = await response.text();
+console.log("FORGE RESPONSE:", text);
+
+const data = JSON.parse(text);
 
     if (!data.success) throw new Error(data.error || 'Forge failed');
 
