@@ -678,6 +678,7 @@ function downloadResume(num) {
   }
 
   parsedResume = parseResume(text);
+  console.log("parsedResume:", parsedResume);
 
   // If the user already picked a template earlier from the Templates gallery,
   // skip the picker entirely and download directly with that template.
