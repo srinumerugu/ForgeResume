@@ -699,8 +699,11 @@ def analyze():
 
         # ONE Gemini call returns everything: ATS rubric output + jd_skills + target_title + hard_requirements
         prompt = build_analyze_prompt(job_desc, resume_text)
-        ai_text = call_ai(prompt, temperature=0.1)
+        ai_text = call_ai(prompt, temperature=0.2)
         ai_text = clean_json(ai_text)
+        
+        print("FORGE RAW RESPONSE:")
+        print(ai_text[:5000])
         try:
             parsed = json.loads(ai_text)
         except:
