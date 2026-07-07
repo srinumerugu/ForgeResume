@@ -771,7 +771,7 @@ function buildTemplateGallery() {
     card.innerHTML = `
       <div class="thumb">
         <div class="thumb-loading">rendering</div>
-        <iframe loading="lazy" aria-label="${t.name} preview"></iframe>
+        <iframe aria-label="${t.name} preview"></iframe>
       </div>
       <div class="tbody">
         <span class="ats">ATS-friendly</span>
@@ -1412,7 +1412,7 @@ function buildNavTemplateDropdown() {
     card.innerHTML = `
       <div class="ntthumb">
         <div class="thumb-loading">rendering</div>
-        <iframe loading="lazy" aria-label="${t.name} preview"></iframe>
+        <iframe aria-label="${t.name} preview"></iframe>
       </div>
       <div class="ntname">${t.name}</div>`;
     card.addEventListener('click', () => {
@@ -1901,8 +1901,8 @@ function openBasicPreview(tplId, mode) {
     btn.classList.remove('sf-use-mode');
   }
   const frame = document.getElementById('basicFrame');
-  frame.srcdoc = buildResumeDoc(parsedResume, currentPreviewTemplate);
   basicModal.classList.remove('hidden');
+  frame.srcdoc = buildResumeDoc(parsedResume, currentPreviewTemplate);
   const fit = () => { frame.style.transform = `scale(${frame.parentElement.clientWidth / 816})`; };
   frame.addEventListener('load', fit);
   requestAnimationFrame(fit);
